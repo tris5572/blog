@@ -1,0 +1,16 @@
+---
+// ブログ記事から、サイト内に存在する画像を表示するためのコンポーネント。
+// ブログ記事を mdx として保存し、以下のように指定する。
+//   import ImgSrc from '../../components/ImgSrc.astro';
+//   <ImgSrc path="/images/gravel.jpg" alt="グラベルの画像" />
+import { href } from '../scripts/util';
+
+export interface Props {
+  path: string;
+  alt: string;
+}
+
+const { path, alt } = Astro.props;
+---
+
+<img src={href(path)} alt={alt} />
