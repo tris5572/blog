@@ -1,0 +1,69 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { href } from '../../scripts/util';
+import type { string } from 'astro/zod';
+
+const allPosts = await getCollection('blog');
+const allTags = allPosts.map((post) => post.data.tags).flat();
+const tagsList = [...new Set(allTags)]; // 重複がないタグのリスト
+
+// 各タグの出現回数を数える。
+const countedTags: { [key: string]: number } = {};
+for (const tag of allTags) {
+  if (tag != null) {
+    countedTags[tag] = (countedTags[tag] || 0) + 1;
+  }
+}
+
+// [ [タグ名, 出現回数] ] の形にして、出現回数の多い方からソート。
+const timesOrderedTags = Object.keys(countedTags)
+  .map((key): [string, number] => [key, countedTags[key]])
+  .sort((a, b) => b[1] - a[1]);
+
+// const posts = (await getCollection('blog')).sort(
+//   (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+// );
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      ul {
+        list-style-type: none;
+        padding: unset;
+      }
+      ul li {
+        display: flex;
+      }
+      ul li :global(time) {
+        flex: 0 0 130px;
+        font-style: italic;
+        color: #595959;
+      }
+      ul li a:visited {
+        color: #8e32dc;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <section>
+        {
+          Object.keys(countedTags).map((key) => (
+            <p>{`${key} (${countedTags[key]})`}</p>
+          ))
+        }
+        {timesOrderedTags.map((value) => <p>{`${value[0]} (${value[1]})`}</p>)}
+      </section>
+    </main>
+    <Footer />
+  </body>
+</html>
