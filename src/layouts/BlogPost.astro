@@ -44,16 +44,30 @@ const { title, description, pubDate, updatedDate, heroImage, tags } =
         {
           updatedDate && (
             <div class="last-updated-on">
-              最終更新 <FormattedDate date={updatedDate} />
+              　最終更新 <FormattedDate date={updatedDate} />
             </div>
           )
         }
         {'　'}
-        {tags && tags.map((tag) => <a>{` ${tag}`}</a>)}
+        {
+          tags &&
+            tags.map((tag) => (
+              <a href={href(`/tags/${tag}`)} class="tag">{`#${tag}`}</a>
+            ))
+        }
         <hr />
         <slot />
       </article>
     </main>
     <Footer />
+    <style>
+      .tag {
+        font-size: small;
+        margin-left: 0.5em;
+      }
+      .last-updated-on {
+        display: inline-block;
+      }
+    </style>
   </body>
 </html>

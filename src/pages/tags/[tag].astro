@@ -1,0 +1,78 @@
+---
+// タグを元に、各タグのページを生成する。
+
+import { CollectionEntry, getCollection } from 'astro:content';
+import FormattedDate from '../../components/FormattedDate.astro';
+import BlogPost from '../../layouts/BlogPost.astro';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { href } from '../../scripts/util';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  const allTags = allPosts.map((post) => post.data.tags).flat();
+  const uniqueTags = [...new Set(allTags)]; // 重複がないタグのリスト
+
+  // 当該タグを持つ記事を、日付が新しいものから並べて返す。
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts
+      .filter((post) => post.data.tags.includes(tag))
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+type Props = CollectionEntry<'blog'>;
+
+const { posts } = Astro.props;
+// const { Content } = await posts.render();
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      ul {
+        list-style-type: none;
+        padding: unset;
+      }
+      ul li {
+        display: flex;
+      }
+      ul li :global(time) {
+        flex: 0 0 130px;
+        font-style: italic;
+        color: #595959;
+      }
+      ul li a:visited {
+        color: #8e32dc;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <section>
+        <ul>
+          {
+            posts.map(
+              (post: { data: { pubDate: any; title: unknown }; slug: any }) => (
+                <li>
+                  <FormattedDate date={post.data.pubDate} />
+                  <a href={href(`/blog/${post.slug}/`)}>{post.data.title}</a>
+                </li>
+              )
+            )
+          }
+        </ul>
+      </section>
+    </main>
+    <Footer />
+  </body>
+</html>

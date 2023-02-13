@@ -24,10 +24,6 @@ for (const tag of allTags) {
 const timesOrderedTags = Object.keys(countedTags)
   .map((key): [string, number] => [key, countedTags[key]])
   .sort((a, b) => b[1] - a[1]);
-
-// const posts = (await getCollection('blog')).sort(
-//   (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
-// );
 ---
 
 <!DOCTYPE html>
@@ -38,17 +34,17 @@ const timesOrderedTags = Object.keys(countedTags)
       ul {
         list-style-type: none;
         padding: unset;
+        display: flex;
       }
       ul li {
         display: flex;
+        padding: 0.5em;
+        margin: 0.5em;
+        border: 1px solid hsl(0, 37%, 45%);
+        border-radius: 8px;
       }
-      ul li :global(time) {
-        flex: 0 0 130px;
-        font-style: italic;
-        color: #595959;
-      }
-      ul li a:visited {
-        color: #8e32dc;
+      ul li a {
+        color: inherit;
       }
     </style>
   </head>
@@ -56,12 +52,17 @@ const timesOrderedTags = Object.keys(countedTags)
     <Header />
     <main>
       <section>
-        {
-          Object.keys(countedTags).map((key) => (
-            <p>{`${key} (${countedTags[key]})`}</p>
-          ))
-        }
-        {timesOrderedTags.map((value) => <p>{`${value[0]} (${value[1]})`}</p>)}
+        <ul>
+          {
+            timesOrderedTags.map((value) => (
+              <li>
+                <a
+                  href={href(`/tags/${value[0]}`)}
+                >{`${value[0]} (${value[1]})`}</a>
+              </li>
+            ))
+          }
+        </ul>
       </section>
     </main>
     <Footer />
