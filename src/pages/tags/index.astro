@@ -4,13 +4,13 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
-import FormattedDate from '../../components/FormattedDate.astro';
 import { href } from '../../scripts/util';
-import type { string } from 'astro/zod';
 
-const allPosts = await getCollection('blog');
+const allPosts = (await getCollection('blog')).filter(
+  (post) => !post.data.draft
+);
 const allTags = allPosts.map((post) => post.data.tags).flat();
-const tagsList = [...new Set(allTags)]; // 重複がないタグのリスト
+// const tagsList = [...new Set(allTags)]; // 重複がないタグのリスト
 
 // 各タグの出現回数を数える。
 const countedTags: { [key: string]: number } = {};
@@ -35,6 +35,8 @@ const timesOrderedTags = Object.keys(countedTags)
         list-style-type: none;
         padding: unset;
         display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
       }
       ul li {
         display: flex;

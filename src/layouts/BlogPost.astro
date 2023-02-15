@@ -36,7 +36,13 @@ const { title, description, pubDate, updatedDate, heroImage, tags } =
       <article>
         {
           heroImage && (
-            <img width={720} height={360} src={href(heroImage)} alt="" />
+            <img
+              width="720"
+              height="360"
+              src={href(heroImage)}
+              class="hero-image"
+              alt=""
+            />
           )
         }
         <h1 class="title">{title}</h1>
@@ -67,6 +73,13 @@ const { title, description, pubDate, updatedDate, heroImage, tags } =
       }
       .last-updated-on {
         display: inline-block;
+      }
+      .hero-image {
+        max-width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        display: block;
+        margin: 0 auto;
       }
     </style>
   </body>

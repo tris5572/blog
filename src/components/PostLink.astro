@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { href } from '../scripts/util';
+import FormattedDate from './FormattedDate.astro';
+
+type Props = CollectionEntry<'blog'>;
+
+const { post } = Astro.props;
+---
+
+<a href={href(`/blog/${post.slug}/`)}>
+  <div class="container">
+    <div class="wrapper">
+      {
+        post.data.heroImage ? (
+          <img src={href(post.data.heroImage)} class="hero-image" />
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="640"
+            viewBox="0 0 640 360"
+            class="hero-image"
+          >
+            <rect width="100%" height="100%" fill="hsl(0, 0%, 95%)" />
+            <text
+              x="50%"
+              y="210"
+              font-size="80"
+              text-anchor="middle"
+              fill="white"
+              font-family="'Economica', sans-serif"
+              font-weight="200"
+            >
+              No Image
+            </text>
+          </svg>
+        )
+      }
+    </div>
+    <div class="wrapper">
+      <p class="title">
+        {post.data.title}
+      </p>
+      <p class="description">
+        {post.data.description}
+      </p>
+      <FormattedDate date={post.data.pubDate} />
+    </div>
+  </div>
+</a>
+
+<style>
+  .container {
+    border: solid 2px hsl(0, 10%, 80%);
+    border-radius: 6px;
+    padding: 0.5em 1em 0.2em;
+    margin-bottom: 1em;
+    display: flex;
+  }
+  .container:hover {
+    background: hsl(0, 0%, 95%);
+  }
+  .wrapper {
+    margin: 0;
+  }
+  .hero-image {
+    width: 300px;
+    max-width: 30vw;
+    aspect-ratio: 16/9;
+    margin-right: 12px;
+    object-fit: cover;
+  }
+  /* svg {
+    width: 300px;
+    max-width: 30vw;
+    aspect-ratio: 16/9;
+    margin-right: 12px;
+    object-fit: cover;
+  } */
+
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+  .title {
+    margin: 0;
+    padding: 0;
+    font-weight: 800;
+    font-size: 120%;
+    text-decoration: underline;
+  }
+  .description {
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+  }
+  :global(time) {
+    flex: 0 0 130px;
+    font-style: italic;
+    color: #868686;
+  }
+</style>

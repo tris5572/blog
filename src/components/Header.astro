@@ -9,10 +9,9 @@ import { href } from '../scripts/util';
     <a href={href('/')}>{SITE_TITLE}</a>
   </h2>
   <nav>
-    <HeaderLink href={href('/blog')}>Blog</HeaderLink>
+    <HeaderLink href={href('/blog')}>Posts</HeaderLink>
     <HeaderLink href={href('/tags')}>Tags</HeaderLink>
     <HeaderLink href={href('/about')}>About</HeaderLink>
-    <HeaderLink href={href('/project')}>Project</HeaderLink>
     <HeaderLink href="https://twitter.com/tris_pef" target="_blank">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -48,7 +47,7 @@ import { href } from '../scripts/util';
     text-align: center;
   }
   h2 {
-    margin: 0 1em 0 0;
+    margin: 0 0.5em 0 0;
     font-family: 'Economica', sans-serif;
     font-weight: 700;
     font-style: italic;
@@ -61,5 +60,9 @@ import { href } from '../scripts/util';
   }
   nav {
     display: inline-block;
+  }
+  svg {
+    width: 20px;
+    height: 20px;
   }
 </style>
