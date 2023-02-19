@@ -21,17 +21,16 @@ const posts = (await getCollection('blog'))
   <body>
     <Header title={SITE_TITLE} />
     <main>
-      <!-- <h1>🧑‍🚀 Hello, Astronaut!</h1> -->
-
       {posts.map((post) => <PostLink {post} />)}
 
       <a href={href('/blog')}>
-        <p class="past-link">← 過去の記事</p>
+        <p class="past-link">過去の記事</p>
       </a>
     </main>
     <Footer />
     <style>
       .past-link {
+        text-align: center;
       }
     </style>
   </body>

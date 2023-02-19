@@ -8,9 +8,22 @@ import { href } from '../scripts/util';
 export interface Props {
   src: string;
   alt: string;
+  caption?: string;
 }
 
-const { src, alt } = Astro.props;
+const { src, alt, caption } = Astro.props;
 ---
 
 <img src={href(src)} alt={alt} />
+{caption && <div>{caption}</div>}
+
+<style>
+  img {
+    display: block;
+    margin: 0 auto;
+  }
+  div {
+    text-align: center;
+    color: #777;
+  }
+</style>
