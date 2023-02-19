@@ -10,6 +10,7 @@ type Props = CollectionEntry<'blog'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage, tags } =
   Astro.props;
+// const ogImage = heroImage ? href(heroImage) :href("/images/gravel.jpg")
 ---
 
 <html lang="ja">
