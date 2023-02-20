@@ -1,21 +1,26 @@
 ---
 // メッセージ枠を表示するためのコンポーネント。
 // 指定した level により、色を変える。
-//   0: 通常、1: 黄色、2: 赤
+//   0: 通常、1: 青、2: 黄色、3: 赤
+// cap: アイコンに表示する文字列。半角2文字程度までが限度。
 
 export interface Props {
   level: number | undefined;
+  cap: string | undefined;
 }
 
-const { level = 0 } = Astro.props;
+const { level = 0, cap = '!' } = Astro.props;
 
-let bgColor = 'hsl(200, 80%, 95%)';
-let keyColor = 'hsl(200, 80%, 80%)';
+let bgColor = 'hsl(0, 0%, 98%)';
+let keyColor = 'hsl(200, 10%, 80%)';
 
 if (level == 1) {
+  bgColor = 'hsl(200, 80%, 95%)';
+  keyColor = 'hsl(200, 80%, 80%)';
+} else if (level == 2) {
   bgColor = 'hsl(55, 80%, 92%)';
-  keyColor = 'hsl(55, 90%, 50%)';
-} else if (2 <= level) {
+  keyColor = 'hsl(55, 80%, 50%)';
+} else if (3 <= level) {
   bgColor = 'hsl(0, 90%, 95%)';
   keyColor = 'hsl(0, 80%, 70%)';
 }
@@ -23,7 +28,7 @@ if (level == 1) {
 
 <div class="box">
   <div class="left">
-    <div class="icon">!</div>
+    <div class="icon">{cap}</div>
   </div>
   <div class="right">
     <slot />
@@ -34,6 +39,7 @@ if (level == 1) {
   .box {
     padding: 1px 1em;
     border-radius: 8px;
+    border: 1px solid var(--keyColor);
     background-color: var(--bgColor);
     display: flex;
     align-items: center;
@@ -46,11 +52,12 @@ if (level == 1) {
     color: white;
     text-align: center;
     font-weight: bold;
+    overflow: hidden;
   }
   .right {
     margin-left: 1em;
   }
   img {
-    color: hsl(54, 90%, 45%);
+    color: hsl(56, 79%, 47%);
   }
 </style>
