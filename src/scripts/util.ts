@@ -5,6 +5,8 @@ export function href(s: string): string {
   // スラッシュから始まるとき、それを削除する。
   if (str.charAt(0) === '/') {
     str = str.substring(1);
+  } else {
+    return s;
   }
   return `${import.meta.env.BASE_URL}${str}`;
 }
