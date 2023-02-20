@@ -1,0 +1,56 @@
+---
+// メッセージ枠を表示するためのコンポーネント。
+// 指定した level により、色を変える。
+//   0: 通常、1: 黄色、2: 赤
+
+export interface Props {
+  level: number | undefined;
+}
+
+const { level = 0 } = Astro.props;
+
+let bgColor = 'hsl(200, 80%, 95%)';
+let keyColor = 'hsl(200, 80%, 80%)';
+
+if (level == 1) {
+  bgColor = 'hsl(55, 80%, 92%)';
+  keyColor = 'hsl(55, 90%, 50%)';
+} else if (2 <= level) {
+  bgColor = 'hsl(0, 90%, 95%)';
+  keyColor = 'hsl(0, 80%, 70%)';
+}
+---
+
+<div class="box">
+  <div class="left">
+    <div class="icon">!</div>
+  </div>
+  <div class="right">
+    <slot />
+  </div>
+</div>
+
+<style define:vars={{ bgColor, keyColor }}>
+  .box {
+    padding: 1px 1em;
+    border-radius: 8px;
+    background-color: var(--bgColor);
+    display: flex;
+    align-items: center;
+  }
+  .icon {
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    background: var(--keyColor);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+  }
+  .right {
+    margin-left: 1em;
+  }
+  img {
+    color: hsl(54, 90%, 45%);
+  }
+</style>

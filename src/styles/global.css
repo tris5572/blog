@@ -77,4 +77,5 @@ code > .line {
 }
 pre.astro-code {
   line-height: 1.2;
+  border-radius: 8px;
 }
