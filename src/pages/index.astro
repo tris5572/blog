@@ -2,7 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { SITE_TITLE, SITE_DESCRIPTION, TOP_PAGE_POSTS } from '../consts';
 import { getCollection } from 'astro:content';
 import PostLink from '../components/PostLink.astro';
 import { href } from '../scripts/util';
@@ -10,7 +10,8 @@ import { href } from '../scripts/util';
 // 全記事。
 const posts = (await getCollection('posts'))
   .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, TOP_PAGE_POSTS);
 ---
 
 <!DOCTYPE html>
