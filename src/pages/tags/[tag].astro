@@ -2,11 +2,11 @@
 // タグを元に、各タグの記事一覧ページを生成する。
 
 import { CollectionEntry, getCollection } from 'astro:content';
-import BaseHead from '../../components/BaseHead.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import BaseHead from '@components/BaseHead.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PostLink from '@components/PostLink.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
-import PostLink from '../../components/PostLink.astro';
 
 export async function getStaticPaths() {
   const allPosts = (await getCollection('posts')).filter(
