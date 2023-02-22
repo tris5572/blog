@@ -6,7 +6,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
 import { href } from '../../scripts/util';
 
-const allPosts = (await getCollection('blog')).filter(
+const allPosts = (await getCollection('posts')).filter(
   (post) => !post.data.draft
 );
 const allTags = allPosts.map((post) => post.data.tags).flat();

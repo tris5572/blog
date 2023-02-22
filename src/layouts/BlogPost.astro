@@ -7,7 +7,7 @@ import FormattedDate from '../components/FormattedDate.astro';
 import { href } from '../scripts/util';
 import { SITE_TITLE } from '../consts';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'posts'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage, tags } =
   Astro.props;
@@ -62,7 +62,7 @@ const { title, description, pubDate, updatedDate, heroImage, tags } =
         {'　'}
         {
           tags &&
-            tags.map((tag) => (
+            tags.map((tag: any) => (
               <a href={href(`/tags/${tag}`)} class="tag">{`#${tag}`}</a>
             ))
         }

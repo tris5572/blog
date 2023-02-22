@@ -8,7 +8,7 @@ import PostLink from '../components/PostLink.astro';
 import { href } from '../scripts/util';
 
 // 全記事。
-const posts = (await getCollection('blog'))
+const posts = (await getCollection('posts'))
   .filter((post) => !post.data.draft)
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
@@ -23,7 +23,7 @@ const posts = (await getCollection('blog'))
     <main>
       {posts.map((post) => <PostLink {post} />)}
 
-      <a href={href('/blog')}>
+      <a href={href('/posts')}>
         <p class="past-link">過去の記事</p>
       </a>
     </main>

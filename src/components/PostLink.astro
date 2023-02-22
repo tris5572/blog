@@ -3,12 +3,12 @@ import type { CollectionEntry } from 'astro:content';
 import { href } from '../scripts/util';
 import FormattedDate from './FormattedDate.astro';
 
-type Props = CollectionEntry<'blog'>;
+type Props = CollectionEntry<'posts'>;
 
 const { post } = Astro.props;
 ---
 
-<a href={href(`/blog/${post.slug}/`)}>
+<a href={href(`/posts/${post.slug}/`)}>
   <div class="container">
     <div class="wrapper">
       {
