@@ -1,0 +1,164 @@
+---
+title: "Viteを使ったSvelteのプロジェクト生成時のメモ"
+description: "Viteを使ってSvelteでシンプルなアプリを作ってGitHub Pagesへデプロイしようとしたらちょっと引っかかったので、対応を書き残しておく。"
+pubDate: "2023-03-05"
+heroImage: "/images/2023/2023-03-05.jpg"
+tags: ["プログラム", "Svelte"]
+---
+import Image from '@components/Image.astro';
+import Message from '@components/Message.astro';
+
+Viteを使ってSvelteでシンプルなアプリを作ってGitHub Pagesへデプロイしようとしたらちょっと引っかかったので、対応を書き残しておく。
+
+# 環境
+
+- Windows10
+- npm
+- VSCode
+- 2023年3月頭の時点の諸々のバージョン
+
+# やること
+
+Viteを使って、Svelteのシンプルなアプリを作り、GitHub Pagesへデプロイする。
+
+- Viteによるプロジェクト作成とテスト実行
+- VSCodeで発生するエラーへの対応
+- Vitestによるテストの実行
+- GitHub Pagesへのデプロイ
+
+<Message level="1">
+SvelteKitではなく、Svelte単体でアプリを作る。[Svelteの公式ドキュメント](https://svelte.jp/docs#getting-started)に「Svelteでシンプルなアプリを構築したい場合はViteとSvelteを使える」という記載があるので、これに則る。
+</Message>
+
+
+# Viteによるプロジェクト作成とテスト実行
+
+プロジェクトを作成したいフォルダでターミナルを開き、`npm init vite` を実行する。
+
+- プロジェクト名を聞かれるので命名。（例えば `test-vite` とか）
+- フレームワークは `Svelte` を選択。
+- `TypeScript` を使うように設定。（お好み）
+
+できたプロジェクトをVSCodeで開き、`npm i` を実行して必要なパッケージのインストールを行う。
+
+それからひとまずターミナルで `npm run dev` と実行すると、ローカルホストで超シンプルなカウンターが起動する。
+
+<Message level="2">
+`npm i` の実行を忘れていると、開発サーバで確認するために `npm run dev` と実行したとき、「'vite' is not recognized as an internal or external command, operable program or batch file.」というエラーが発生する。
+
+プロジェクト作成後に表示されるメッセージに「ディレクトリに移動して `npm install` を実行してね」とコマンドが書いているので、あまり忘れることはないと思うけど。
+
+ちなみに `npm i` と `npm install` は同じ意味。
+</Message>
+
+# VSCodeでエラーが表示されたときの対応（1度だけ）
+
+もしも、プロジェクト内の `.svelte` ファイルをVSCodeで開いたときに謎のエラーが表示されたときの対処法。
+
+`Error in svelte.config.js SyntaxError: Cannot use import statement outside a module` と書かれているかも。
+
+<Message level="2">
+手元で再現しなくなったけど、多分こんなメッセージのはず……。
+</Message>
+
+これは以下の設定を行えば解消できる。
+
+1. VSCodeの「設定」を開く。（Ctrl + ,）
+2. 設定を「Svelte」で検索する。
+3. 「Svelte › Language-server: Runtime」に、`node` へのパスを入れる。（例えば「C:\\\\Program Files\\\\nodejs\\\\node.exe」）
+4. 「ウィンドウの再読み込み」を行う。（F1を押して「Reload Window」を実行する）
+
+<Message level="1">
+この設定はVSCode自体に対するものなので、一度実施すれば他のプロジェクトを作成しても行う必要はない。
+</Message>
+
+# Vitestの有効化
+
+Vitestを使って、スクリプト部分の単体テストを行う。
+
+`npm i -D vitest` によりVitestをインストールする。
+
+`package.json` の `script` に、`"test": "vitest"` を追記する。（前の行にカンマを追加するのを忘れないこと）
+
+`src` ディレクトリ内に、適当なテスト用ファイルを作成する。
+
+```ts
+// test.test.ts
+
+import { expect, test } from "vitest";
+
+test("One plus Two", () => {
+  expect(1 + 2).toBe(3);
+});
+```
+
+`npm run test` によりテストを実行する。Vitestはファイルの変更をチェックし続けるので、コードを変更して保存すれば自動的にテストが走る。
+
+# GitHub Pagesへのデプロイ
+
+リポジトリへプッシュすると、GitHub Actionsで自動ビルドされて`gh-pages`ブランチが公開されるよう設定する。
+
+`.github/workflows/deploy.yaml` として、以下のファイルを作成する。
+
+```yaml
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: npm
+
+      - run: npm install
+      - run: npm run build
+
+      - uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+```
+
+GitHub Pagesの相対パスに対応するよう、`vite.config.ts` を編集し、ビルド時の設定を変更する。具体的には以下のように`base`を追加する。
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  plugins: [svelte()],
+  base: "./",
+});
+```
+
+GitHubにリポジトリを作ってプッシュする。
+
+1. ローカルで`git init`
+1. GitHubにリポジトリを作成
+1. ローカルでリモートとしてリポジトリを追加
+1. プッシュ
+
+## GitHub側のプロジェクト設定
+
+`Settings > Pages > Branch` で `gh-pages` と `/(root)` を選択して Save する。
+
+<Message level="1">
+`gh-pages`は、ビルドとデプロイのActionsが成功して`gh-pages`ブランチができた後にしか選択できない。
+</Message>
+
+<Message level="2">
+プッシュ後にデプロイが失敗し、リポジトリの`Actions`タブの当該デプロイに `Action failed with "The process '/usr/bin/git' failed with exit code 128"` というエラーが表示されているときは設定変更の必要がある。
+
+`Settings > Actions > General` 内の `Workflow permissions` で `Read and write permissions` を選択する。
+</Message>
+
