@@ -62,7 +62,7 @@ const { title, description, pubDate, updatedDate, heroImage, tags } =
         {'　'}
         {
           tags &&
-            tags.map((tag: any) => (
+            tags.map((tag) => (
               <a href={href(`/tags/${tag}`)} class="tag">{`#${tag}`}</a>
             ))
         }

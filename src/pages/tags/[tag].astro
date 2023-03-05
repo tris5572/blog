@@ -34,37 +34,31 @@ type Props = {
 };
 
 const { posts } = Astro.props;
+const { tag } = Astro.params;
 ---
 
 <!DOCTYPE html>
 <html lang="ja">
   <head>
-    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-    <style>
-      ul {
-        list-style-type: none;
-        padding: unset;
-      }
-      ul li {
-        display: flex;
-      }
-      ul li :global(time) {
-        flex: 0 0 130px;
-        font-style: italic;
-        color: #595959;
-      }
-      ul li a:visited {
-        color: #8e32dc;
-      }
-    </style>
+    <BaseHead
+      title={`タグ:${tag} - ${SITE_TITLE}`}
+      description={SITE_DESCRIPTION}
+    />
   </head>
   <body>
     <Header />
     <main>
       <section>
+        <h2 class="tag">タグ：{tag}</h2>
         {posts.map((post) => <PostLink {post} />)}
       </section>
     </main>
     <Footer />
+
+    <style>
+      .tag {
+        text-align: center;
+      }
+    </style>
   </body>
 </html>
