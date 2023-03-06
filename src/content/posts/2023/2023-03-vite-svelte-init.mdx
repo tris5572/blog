@@ -57,7 +57,7 @@ SvelteKitではなく、Svelte単体でアプリを作る。[Svelteの公式ド�
 
 `Error in svelte.config.js SyntaxError: Cannot use import statement outside a module` と書かれているかも。
 
-<Message level="2">
+<Message level="0">
 手元で再現しなくなったけど、多分こんなメッセージのはず……。
 </Message>
 
@@ -65,7 +65,7 @@ SvelteKitではなく、Svelte単体でアプリを作る。[Svelteの公式ド�
 
 1. VSCodeの「設定」を開く。（Ctrl + ,）
 2. 設定を「Svelte」で検索する。
-3. 「Svelte › Language-server: Runtime」に、`node` へのパスを入れる。（例えば「C:\\\\Program Files\\\\nodejs\\\\node.exe」）
+3. 「Svelte › Language-server: Runtime」に、`node` へのパスを入れる。（例えば `C:\\Program Files\\nodejs\\node.exe`）
 4. 「ウィンドウの再読み込み」を行う。（F1を押して「Reload Window」を実行する）
 
 <Message level="1">
@@ -74,11 +74,23 @@ SvelteKitではなく、Svelte単体でアプリを作る。[Svelteの公式ド�
 
 # Vitestの有効化
 
-Vitestを使って、スクリプト部分の単体テストを行う。
+Vitestを使って、スクリプト部分の単体テストを行うための手順。
 
 `npm i -D vitest` によりVitestをインストールする。
 
-`package.json` の `script` に、`"test": "vitest"` を追記する。（前の行にカンマを追加するのを忘れないこと）
+`package.json`の`scripts`の部分に、`"test": "vitest"` を追記する。（前の行にカンマを追加するのを忘れないこと）
+
+```json
+...(略)...
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview",
+  "check": "svelte-check --tsconfig ./tsconfig.json",
+  "test": "vitest"
+},
+...(略)...
+```
 
 `src` ディレクトリ内に、適当なテスト用ファイルを作成する。
 
@@ -96,7 +108,7 @@ test("One plus Two", () => {
 
 # GitHub Pagesへのデプロイ
 
-リポジトリへプッシュすると、GitHub Actionsで自動ビルドされて`gh-pages`ブランチが公開されるよう設定する。
+リポジトリへプッシュしたときに、GitHub Actionsで自動ビルドされて`gh-pages`ブランチがGitHub Pagesとして公開されるよう設定する。
 
 `.github/workflows/deploy.yaml` として、以下のファイルを作成する。
 
@@ -141,12 +153,19 @@ export default defineConfig({
 });
 ```
 
+また、独自ドメインを使わず普通にGitHub Pagesにデプロイする場合、`src/index.html`のパス指定を、相対パスで読み込むよう書き換える。
+```ts
+<script type="module" src="/src/main.ts"></script>
+　　　　↓
+<script type="module" src="./src/main.ts"></script>
+```
+
 GitHubにリポジトリを作ってプッシュする。
 
 1. ローカルで`git init`
-1. GitHubにリポジトリを作成
-1. ローカルでリモートとしてリポジトリを追加
-1. プッシュ
+2. GitHubに空のリポジトリを作成
+3. ローカルでリモートとしてリポジトリを追加
+4. プッシュ
 
 ## GitHub側のプロジェクト設定
 
@@ -156,9 +175,11 @@ GitHubにリポジトリを作ってプッシュする。
 `gh-pages`は、ビルドとデプロイのActionsが成功して`gh-pages`ブランチができた後にしか選択できない。
 </Message>
 
-<Message level="2">
-プッシュ後にデプロイが失敗し、リポジトリの`Actions`タブの当該デプロイに `Action failed with "The process '/usr/bin/git' failed with exit code 128"` というエラーが表示されているときは設定変更の必要がある。
+これでGitHub Pagesに公開されているはず。URLはリポジトリの Actions タブの実行結果を見れば分かる。
 
-`Settings > Actions > General` 内の `Workflow permissions` で `Read and write permissions` を選択する。
+<Message level="2">
+プッシュ後にデプロイが失敗し、リポジトリの Actions タブの当該デプロイに `Action failed with "The process '/usr/bin/git' failed with exit code 128"` というエラーが表示されていた場合は対応が必要。
+
+リポジトリの設定変更として、`Settings > Actions > General` 内の `Workflow permissions` で `Read and write permissions` を選択する。
 </Message>
 
