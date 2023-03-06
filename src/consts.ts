@@ -6,4 +6,4 @@ export const SITE_DESCRIPTION =
   'プログラミングや自転車や登山等について適当に綴るサイト。';
 
 /** トップページに表示する記事数 */
-export const TOP_PAGE_POSTS = 3;
+export const TOP_PAGE_POSTS = 5;
