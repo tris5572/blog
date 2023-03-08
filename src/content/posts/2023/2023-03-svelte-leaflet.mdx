@@ -1,0 +1,180 @@
+---
+title: "Svelte + Leafletで国土地理院の地図を表示する"
+description: "Svelteで地図を表示するとき、素のLeafletを使うにあたってはいくつかコツがある。"
+pubDate: "2023-03-08"
+heroImage: "/images/2023/2023-03-08.jpg"
+tags: ["プログラム", "Svelte", "Leaflet"]
+---
+import Image from '@components/Image.astro';
+import Message from '@components/Message.astro';
+
+# やること
+
+Svelteと素のLeafletを使って、国土地理院の地図タイルを表示する。
+
+# 環境
+
+- Windows10
+- npm
+- VSCode
+- 2023年3月時点の諸々のバージョン
+
+# プロジェクトの作成
+
+1. `npm init vite` を実行し、Svelteのプロジェクトを作成する。この記事の例ではTypeScriptを使用している。
+2. 作成したプロジェクトを開き、`npm i` を実行して必要なもののインストールを行う。
+3. `npm i leaflet @types/leaflet` を実行してプロジェクトへLeafletを追加する。
+
+# コードの編集
+
+`src/App.svelte`を以下のように書き換える。
+
+<Message level="1">
+もちろん、専用のSvelteコンポーネントを作っても良い。
+</Message>
+
+```svelte
+<script lang="ts">
+  import * as L from "leaflet";
+  import "leaflet/dist/leaflet.css";
+  import { onMount } from "svelte";
+
+  let map: L.Map;
+
+  // 地図の初期化
+  onMount(() => {
+    let pale = L.tileLayer("https://maps.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+      maxZoom: 18,
+    });
+    let std = L.tileLayer("https://maps.gsi.go.jp/xyz/std/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+      maxZoom: 18,
+    });
+    let photo = L.tileLayer(
+      "https://maps.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
+      {
+        attribution:
+          '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+        maxZoom: 18,
+      }
+    );
+
+    // 地図を初期化する。中心座標、ズームレベル、初期表示するレイヤーを指定する。
+    map = L.map("map", {
+      center: [36.2, 138.5],
+      zoom: 8,
+      layers: [pale],
+    });
+
+    // タイル一覧を設定する。オプションを渡して常に表示させる。
+    L.control
+      .layers(
+        {
+          "地理院地図(淡色)": pale,
+          "地理院地図(標準)": std,
+          "地理院地図(写真)": photo,
+        },
+        null,
+        { collapsed: false } // 常に表示するオプション
+      )
+      .addTo(map);
+  });
+</script>
+
+<!-- 地図の表示エリア -->
+<div id="map" />
+
+<style>
+  /* ページの余白を削除する */
+  :global(#app) {
+    margin: 0;
+    padding: 0;
+  }
+  /* 画面いっぱいに地図を表示する */
+  #map {
+    width: 100dvw;
+    height: 100dvh;
+  }
+</style>
+```
+
+これで `npm run dev` を行えば、ローカル環境で動作確認を行え、地図が表示されるはず。
+
+# コードの補足説明
+
+基本的にはコードにコメントで書いている通りだが、補足説明を記す。
+
+## 地図の初期化を書く位置
+
+SvelteでLeafletを使用する場合、**地図の初期化は`onMount()`の中で行う**。これが超重要。
+
+なぜなら`onMount()`の外ではまだ地図を表示する要素（この場合は`<div id="map" />`）が存在していないため、マウント完了後に初期化を行うように書く必要がある。
+
+<Message level="0">
+試しに`onMount()`の外に書いてみると、エラーが発生することが分かる。
+</Message>
+
+## 地図の初期化の書き方
+
+地図の初期化に関して、上記例では以下のように書いている。
+
+```ts
+map = L.map("map", { ...
+```
+
+これは[Leafletのドキュメント](https://leafletjs.com/reference.html#map-factory)の通り、「`map`というDOMのIDを持つ要素に対してLeafletを表示する」というもの。したがって下の方にある `<div id="map" />` が地図になる。これが基本的な書き方。
+
+ただそのドキュメントには`HTMLElement`を渡す方法も書かれており、Svelteでは以下のような`HTMLElement`をバインドする方法でも書ける。
+
+```svelte
+<script lang="ts">
+  ...
+  let mapElement: HTMLElement;
+  ...
+  map = L.map(mapElement, {
+  ...
+</script>
+
+// マークアップ部分
+<div id="map" bind:this={mapElement} />
+```
+
+どちらが良いかは書き手の好み次第。他のフレームワークとの整合性なら前者、Svelteとしての分かりやすさでは後者かなという感じ。
+
+## CSS指定：`:global(#app)`
+
+`:global(#app)`に対して、余白を削除する指定を行っている。
+
+これはSvelteのデフォルトでは、`src/index.html`の`<div id="app">`に対して、`src/lib/app.css`により`margin`と`padding`が指定されているため、それを打ち消している。
+
+もちろん`src/lib/app.css`を書き換えても良い。
+
+## CSS指定：`#map`
+
+`div`は中身がないとサイズが0になってしまうため、幅と高さを指定する。サイズを指定しないと地図が表示されない。
+
+今回は画面いっぱいに広がるように指定している。ダイナミックな画面サイズに対応するため、最近CSSに追加された`dvw`と`dvh`を使用している。
+
+## 機能追加時の注意
+
+Svelteのストアの値（`$xxx`のようなもの）に応じて`map`の関数を呼び出して地図を操作するような機能を追加する場合は、以下のように`map`の存在をチェックしてから処理を実行した方が良い。
+
+```ts
+if (map != null) {
+  ...処理...
+}
+```
+
+これはストアの値に関連して、初回が地図の初期化前に実行されることがあるため。もし正体的に何か書いていて不思議なエラーが出たらこのあたりが原因かも。
+
+---
+
+素のLeafletを使ってSvelteで地図を表示する方法を説明した。
+
+実は世の中には[Leafletをラップしてくれるライブラリ](https://github.com/ngyewch/svelte-leaflet)もある。地図を表示するだけならこれで充分。ただ微妙に機能が不足しているのが引っかかったり、細かい制御を行いたい場合はどうしても素のLeafletを扱う必要がある。
+
+でもSvelteで素のLeafletを使うと、Leafletの中にも状態を持つので、Svelte側の状態との間での整合性を自分で保つ必要があったりして面倒ではある。例えばSvelte側で持っているマーカーのリストと、Leaflet側に表示するマーカーを一致させるようなケースに工夫が必要。そのあたりのトレードオフを考慮しつつ方針を決める必要がある。
+
