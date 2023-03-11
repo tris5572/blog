@@ -90,37 +90,48 @@ const { title, description, pubDate, updatedDate, heroImage, tags } =
       :global(:not(header) > h1:not(.title)) {
         margin-top: 2em;
         padding: 0.5em;
-        border-radius: 2px;
-        background: linear-gradient(
+        border-width: 2px 0 2px 16px;
+        border-style: solid;
+        border-image-source: linear-gradient(
           to right,
-          hsla(0, 70%, 90%, 0.3),
-          hsla(0, 70%, 90%, 0.8)
+          hsla(0, 50%, 70%, 0.6),
+          hsla(0, 37%, 45%, 0)
         );
+        border-image-slice: 1;
       }
       :global(:not(header) > h2) {
         margin-top: 1.5em;
         padding: 0.2em 0.5em;
-        border-radius: 2px;
-        background: linear-gradient(
+        border-width: 1px 0 1px 6px;
+        border-style: solid;
+        border-image-source: linear-gradient(
           to right,
-          hsla(0, 70%, 90%, 0.1),
-          hsla(0, 70%, 90%, 0.5)
+          hsla(0, 50%, 70%, 0.6),
+          hsla(0, 37%, 45%, 0)
         );
+        border-image-slice: 1;
       }
       :global(h3) {
         padding: 0.2em 0.5em;
-        border-radius: 2px;
-        background: linear-gradient(
+        border-width: 1px 0 1px 0;
+        border-style: solid;
+        border-image-source: linear-gradient(
           to right,
-          hsla(0, 70%, 90%, 0.05),
-          hsla(0, 70%, 90%, 0.2)
+          hsla(0, 50%, 70%, 0.4),
+          hsla(0, 37%, 45%, 0)
         );
+        border-image-slice: 1;
       }
       :global(h4) {
-        border-top: 1px dashed hsla(0, 70%, 90%, 0.8);
-        border-bottom: 1px dashed hsla(0, 70%, 90%, 0.8);
         padding: 0.2em 0.5em;
-        border-radius: 2px;
+        border-width: 1px 0 1px 0;
+        border-style: solid;
+        border-image-source: linear-gradient(
+          to right,
+          hsla(0, 50%, 70%, 0.2),
+          hsla(0, 37%, 45%, 0)
+        );
+        border-image-slice: 1;
       }
     </style>
   </body>
