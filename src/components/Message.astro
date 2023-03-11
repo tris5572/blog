@@ -26,7 +26,7 @@ if (level == 1) {
 }
 ---
 
-<div class="box">
+<div class="message-box">
   <div class="left">
     <div class="icon">{cap}</div>
   </div>
@@ -36,7 +36,7 @@ if (level == 1) {
 </div>
 
 <style define:vars={{ bgColor, keyColor }}>
-  .box {
+  .message-box {
     margin-left: 2em;
     margin-right: 2em;
     padding: 1px 1em;
@@ -58,6 +58,7 @@ if (level == 1) {
   }
   .right {
     margin-left: 1em;
+    min-width: 0; /* コードを幅に納めるための指定 */
   }
   img {
     color: hsl(56, 79%, 47%);
