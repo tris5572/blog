@@ -5,9 +5,9 @@ const { date } = Astro.props;
 <time datetime={date.toISOString()}>
   {
     // ロケールによる自動生成ではなく、自前で yyyy/mm/dd の日付を生成する。
-    `${date.getFullYear()}/${(date.getMonth() + 1)
+    `${date.getFullYear()}-${(date.getMonth() + 1)
       .toString()
-      .padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}
+      .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}
 `
   }
 </time>
