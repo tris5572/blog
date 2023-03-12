@@ -1,0 +1,218 @@
+---
+title: "座標の基礎知識と、TypeScriptで書くLeafletの座標の型"
+description: "少しややこしい座標の話と、TypeScriptで書くときのLeafletの座標の型に関するメモ。"
+pubDate: "2023-03-12"
+heroImage: "/images/2023/2023-03-12.jpg"
+tags: ["プログラム", "Leaflet"]
+---
+import Image from '@components/Image.astro';
+import Message from '@components/Message.astro';
+
+今のWebフロントエンド界隈ではTypeScriptによるコーディングが主流となっているため、Leafletを使って地図を表示するときも型を使いたいというのは当然の要望。
+
+そんなときのために、まず前段として座標に関する基礎知識を記し、次いでLeafletで座標に対してどんな型が付いているかを書く。
+
+# 前提知識：緯度と経度
+
+まず前提知識として、**緯度(latitude)** と **経度(longitude)** についてざっくりと記す。
+
+<Message level="1">
+簡易的な記述だけど、コードを書くときはこの程度理解していれば良いかと。
+</Message>
+
+地球上の位置を**角度**で表すための値が**緯度**と**経度**。
+
+**緯度**は北緯・南緯で、地球の南北での位置を表す。赤道を0度として、北へ向かうと北緯が増えていって北極点で北緯90度、逆に南極点では南緯90度になる。
+
+**経度**は東経・西経で、地球の東西での位置を表す。イギリス・ロンドンの旧グリニッジ天文台（の跡地のあたり）を0度とし、地球の反対側の（ほぼ）太平洋上にある日付変更線まで、東回りと西回りで数値が180度まで増えていく。
+
+すなわち、緯度と経度が分かれば、地球上での位置が**大体**分かる。「大体」というのは、緯度と経度だけで分かるのは方向だけであって、高度が分からないから。海に近い平地にいるのか、山の上にいるのか、空を飛んでいるのか、地面に潜っているのかで、実際の位置は異なってくる。まぁ多くの場合、地図の表示は2次元的になされるので、とりあえず余談。
+
+<Message level="2">
+座標は基本的に緯度・経度の順で書かれるので、よくあるxy座標で言えば**Y・Xの順**、すなわち**縦・横の順**になっている。書いているときに混乱しないよう注意。
+</Message>
+
+## 度の表し方
+
+ややこしいことに、この緯度経度の「度」の表し方にはいくつかの形式がある。
+
+以下に色々書いているけど、ひとまず「コンピュータでよく使われる形式は、世間一般でよく使われる度分秒という形式と違うんだな」くらいの理解で良いと思う。
+
+### 度（10進度）
+
+まずLeafletを始めとするコンピュータの世界で最も良く使われるのが「**度**」の形式。**10進度**、**十進角**、**Decimal degrees (DD)** ともいう。これは緯度経度の数値を10進数の度で表したもので、単純に**数字が度**を示す。そして東西南北を符号で表し、北緯・東経をプラス（符号なし）、南緯・西経をマイナスで表すことが多い。（東西南北のEWSNの1文字を書き加える方式もたまに見かける）
+
+この10進度はとても分かりやすい。単純な10進数の数値なので計算がとても簡単。そんなわけでコンピュータの世界ではよく使われる。
+
+#### サンプル
+
+数値的には、およそ小数点以下6桁あれば実用的に充分な精度となる。0.000001度は、（場所と示す方向によるものの）大体10cmくらいの値になるので、GNSSの計測精度を考えるとこれくらいで充分。もう1桁追加して7桁にすれば完璧。
+
+### 度分秒
+
+度を**60進法**で表すのがこの形式。**DMS形式**と呼ばれることもある。大雑把に言えば、世間でよく見る「東経139度44分28.8869秒　北緯35度39分29.1572秒」というやつ。
+
+**度(D)・分(M)・秒(S)** の値で表し、分と秒が時刻と同じように60で繰り上がる。したがって 1度 = 60分 = 3600秒 となり、計算がとても面倒でコンピュータ向きではない。ただし航海における便利さなどの歴史的経緯により、コンピュータ以外の世間一般ではほとんどこれが使われている。
+
+さらに面倒なのが、表記方法が何種類もあること。以下に示すのは一部で、各桁数の表記が変わることもあってややこしい。
+
+- DD度MM分SS.SSSS秒
+- DD°MM′SS.SSSS″
+- DDMMSS.SSSS
+- DDMM.MMMM
+
+ただこのうち、`DDMM.MMMM`という度と分だけを使う表記は、コンピュータの世界でもたまに使うことがある。「NMEA 0183」という規格でGNSSデバイスからシリアル通信で情報を取得するときの緯度経度がこの方式になっているため。これは分の値を60で割って度に加えれば比較的容易に10進度へ変換できる。
+
+### 他の形式
+
+他にも、球体（曲面）ではなく平面として見る平面直角座標なんかもあったりしてここでは語り尽くせないので、興味がある人は調べてみて欲しい。
+
+## どのように省略するか
+
+このあたりでひとつ議論となる話に、「**緯度(latitude)と経度(longitude)をどう略すか**」というものがある。コードを書くときなんか変数名で`latitude`とかわざわざ打っていられないので略して書きたいのは皆思うところだけど、世間的に統一されていないのが現状。
+
+緯度(latitude)の略はまぁ`lat`で確定。4文字にするなら`lati`だけど、4文字にする意味がないのでほとんど使われない。
+
+問題は経度(longitude)。`lon`派と`lng`派が昔からずっと抗争を続けていて、どちらの派閥も自分たちの優位性を主張しているけど、統一には至っていない。じゃあ4文字の`long`すればという話だけど、`lat`との整合性で3文字にしたいところだし、`long`は一部のプログラミング言語で予約語になっていることがあるので使えないことがある。ということで3文字にするしかないけど、`lon`と`lng`が両立したまま今に至る。
+
+そんなわけで、**システムやサービス等ごとに`lon`と`lng`のどちらを使っているかが異なっている**ので注意が必要。例えばLeafletでは`lng`だけど、位置情報ファイルのGPXフォーマットでは`lon`だったりする。
+
+---
+
+# Leafletの座標の型
+
+前振りが長くなったけど、ここからLeafletの座標の型について書く。
+
+Leafletの型はTypeScriptでよくある、[DefinitelyTypedで管理する](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/leaflet/index.d.ts)やり方。つまりプロジェクトに対して`npm i @types/leaflet`で取り込める。
+
+## そもそものJavaScriptでの座標
+
+まずはTypeScriptではないJavaScriptのLeafletの座標を見ていく。
+
+例えば座標を使うケースとして、地図にマーカーを追加することがある。マーカーの生成は以下のように、座標`latlng`とオプション`options?`を指定する。オプションは単なるオブジェクトなのでひとまず無視する。
+
+```js
+L.marker(<LatLng> latlng, <Marker options> options?)
+```
+
+<Message level="2">
+このあたりの型の記述は擬似的な書き方であり、JavaScriptの正式なものではない。
+</Message>
+
+ここで[Leafletの`LatLng`のドキュメント](https://leafletjs.com/reference.html#latlng)を見ると、以下のような3つの生成方法があることが分かる。
+
+```js
+// 緯度と経度の値（と省略可能な高度）を指定
+L.latLng(<Number> latitude, <Number> longitude, <Number> altitude?)
+
+// [Number, Number] か [Number, Number, Number] で、緯度と経度（と高度）を指定
+L.latLng(<Array> coords)
+
+// {lat: Number, lng: Number} か {lat: Number, lng: Number, alt: Number} で、緯度と経度（と高度）を指定
+L.latLng(<Object> coords)
+```
+
+JavaScriptは動的型付け言語なので、どの書き方をしても良いという柔軟性がある。厳密なコードを書きたいときはこれが逆に困るところ。
+
+## TypeScriptでの座標の型
+
+Leafletの`index.d.ts`では、JavaScriptに準じて型が付けられている。
+
+例えば、マーカーを生成する関数の型は以下の通り。
+
+```ts
+export function marker(latlng: LatLngExpression, options?: MarkerOptions): Marker;
+```
+
+座標とオプション（不透明度とか）を渡すと、マーカーが生成される。座標（位置）である`latlng`は`LatLngExpression`型となっている。
+
+この`LatLngExpression`に関係するものは、以下のように定義されている。
+
+```ts
+// index.d.ts
+
+export class LatLng {
+    constructor(latitude: number, longitude: number, altitude?: number);
+    equals(otherLatLng: LatLngExpression, maxMargin?: number): boolean;
+    toString(): string;
+    distanceTo(otherLatLng: LatLngExpression): number;
+    wrap(): LatLng;
+    toBounds(sizeInMeters: number): LatLngBounds;
+    clone(): LatLng;
+
+    lat: number;
+    lng: number;
+    alt?: number | undefined;
+}
+
+export interface LatLngLiteral {
+    lat: number;
+    lng: number;
+}
+
+export type LatLngTuple = [number, number];
+
+export type LatLngExpression = LatLng | LatLngLiteral | LatLngTuple;
+```
+
+最後の行に書かれている通り、`LatLngExpression`は、`LatLng`、`LatLngLiteral`、`LatLngTuple`のいずれかであれば良い。
+
+`LatLng`は、緯度と経度（と高度）を指定して生成するクラス。コンストラクタを使ってインスタンスを生成する。
+
+```ts
+const marker = L.marker(new L.LatLng(35.681, 139.767));
+```
+
+`LatLngLiteral`は、`lat`と`lng`のプロパティを持つオブジェクト。
+
+```ts
+const marker = L.marker({ lat: 35.681, lng: 139.767 });
+```
+
+`LatLngTuple`は、2つの`number`から構成されるタプル。
+
+```ts
+const marker = L.marker([35.681, 139.767]);
+```
+
+TypeScriptは漸進的型付けなので、`LatLngExpression`が求められるところに上記3つのうちのいずれかの方式で座標が書かれていれば、型チェックでエラーにならずに動作する。
+
+この中でコードを書くときに一番使用頻度が高いのは`LatLngTuple`の形式だと思う。緯度と経度の値を角カッコでくくるだけなので使いやすい。
+
+<Message level="1">
+ちなみにこれらは上記のJavaScriptで指定可能な方式と比べると少し異なっていて、例えばタプルとして指定するときに高度が書けなかったりする。例えば `[number, number, number]` で高度を指定するコードを書くと、型が一致せずにエラーとなってしまう。
+
+```ts
+const marker = L.marker([35.681, 139.767, 100.0]); // Type 'number' is not assignable to type 'undefined'.
+```
+
+（「こうど」を指定する「こーど」は、高度なダジャレ）
+</Message>
+
+## 関数で`LatLng`を生成する
+
+`LatLngExpression`が求められるところでは上記のいずれかの書き方で直接指定できるものの、座標を変数として保持して処理したいような場合は`LatLng`のインスタンスにすると取り回しが良い。でも`LatLng`を生成するためには`new`を使って2つの値をそれぞれ渡して、という感じになるので、ちょっと面倒。
+
+そんなときに使えるのが`latLng`関数。**名前が小文字で始まる**のがクラスとの違いで、以下のように定義されている。
+
+```ts
+// index.d.ts
+
+export function latLng(latitude: number, longitude: number, altitude?: number): LatLng;
+
+export function latLng(coords: LatLngTuple | [number, number, number] | LatLngLiteral | {lat: number, lng: number, alt?: number | undefined}): LatLng;
+```
+
+定義の通り、様々な形式から`LatLng`を生成できる。2つ（か3つ）の値を指定できたり、タプルやオブジェクトからもそのまま`LatLng`を生成できたりする。JavaScriptのときと同じように高度も書ける。
+
+```ts
+const p1 = L.latLng(35.681, 139.767);
+const p2 = L.latLng([35.681, 139.767, 100.5]);
+const p3 = L.latLng({ lat: 35.681, lng: 139.767 });
+```
+
+---
+
+座標自体とLeafletの型について説明した。
+
+Leafletの`index.d.ts`では諸々（座標・境界・イベント・オプション等）に型が付けられているので、エディタの補完が効いて書きやすい。でも上記の座標のように表記の仕方が複数あることがほとんどなので、定義を読んで理解を深めておかないとあまり便利になった気がしないかも。
