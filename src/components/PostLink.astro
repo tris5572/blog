@@ -45,11 +45,7 @@ const { post } = Astro.props;
         {post.data.description}
       </p>
       <p class="tags">
-        {
-          post.data.tags.map((tag) => {
-            return `#${tag} `;
-          })
-        }
+        {post.data.tags.map((tag) => `#${tag} `)}
       </p>
       <FormattedDate date={post.data.pubDate} />
     </div>
@@ -58,7 +54,7 @@ const { post } = Astro.props;
 
 <style>
   .container {
-    border: solid 2px hsl(0, 10%, 80%);
+    border: 2px solid hsl(0, 10%, 80%);
     border-radius: 6px;
     padding: 0.5em 1em 0.2em;
     margin-bottom: 1em;
@@ -77,13 +73,6 @@ const { post } = Astro.props;
     margin-right: 12px;
     object-fit: cover;
   }
-  /* svg {
-    width: 300px;
-    max-width: 30vw;
-    aspect-ratio: 16/9;
-    margin-right: 12px;
-    object-fit: cover;
-  } */
 
   a {
     color: inherit;
