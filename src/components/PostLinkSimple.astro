@@ -1,0 +1,99 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { href } from '../scripts/util';
+import FormattedDate from './FormattedDate.astro';
+
+type Props = CollectionEntry<'posts'>;
+
+const { post } = Astro.props;
+---
+
+<!-- <a href={href(`/posts/${post.slug}/`)}>
+  <div class="container">
+    <div class="wrapper">
+      {
+        post.data.heroImage ? (
+          <img src={href(post.data.heroImage)} class="hero-image" />
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="640"
+            viewBox="0 0 640 360"
+            class="hero-image"
+          >
+            <rect width="100%" height="100%" fill="hsl(0, 0%, 95%)" />
+            <text
+              x="50%"
+              y="210"
+              font-size="80"
+              text-anchor="middle"
+              fill="white"
+              font-family="'Economica', sans-serif"
+              font-weight="200"
+            >
+              No Image
+            </text>
+          </svg>
+        )
+      }
+    </div>
+    <div class="wrapper">
+      <p class="title">
+        {post.data.title}
+      </p>
+      <p class="description">
+        {post.data.description}
+      </p>
+      <p class="tags">
+        {
+          post.data.tags.map((tag) => {
+            return `#${tag} `;
+          })
+        }
+      </p>
+      <FormattedDate date={post.data.pubDate} />
+    </div>
+  </div>
+</a> -->
+<a href={href(`/posts/${post.slug}/`)}>
+  <div class="container">
+    <FormattedDate date={post.data.pubDate} />{'　'}<p class="title">
+      {post.data.title}
+    </p>{'　'}
+    <p class="tags">
+      {post.data.tags.map((tag) => `#${tag} `)}
+    </p>
+  </div>
+</a>
+
+<style>
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+  .container {
+    margin: 0.4em 0;
+    padding: 0.1em 0.5em;
+    border: 1px solid hsl(0, 10%, 80%);
+    border-radius: 4px;
+  }
+  .title {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    /* font-weight: bold; */
+  }
+  .tags {
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    font-size: small;
+    color: #999;
+    display: inline-block;
+  }
+  :global(time) {
+    flex: 0 0 130px;
+    font-style: italic;
+    color: #868686;
+  }
+</style>
