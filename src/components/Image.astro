@@ -9,11 +9,11 @@ import { href } from '../scripts/util';
 
 export interface Props {
   src: string;
-  alt: string;
+  alt?: string;
   caption?: string;
 }
 
-const { src, alt, caption } = Astro.props;
+const { src, alt = '', caption } = Astro.props;
 ---
 
 <img src={href(src)} alt={alt} />
