@@ -1,0 +1,192 @@
+---
+title: "MapLibre GL JS + Svelteで地図を表示する方法"
+description: "MapLibre GL JSを使って地図を表示するまでのやり方。"
+pubDate: "2023-03-17"
+heroImage: "/images/2023/2023-03-17-0.jpg"
+tags: ["プログラム", "MapLibre", "Svelte"]
+draft: false
+---
+import Image from '@components/Image.astro';
+import Message from '@components/Message.astro';
+
+MapLibre はオープンソースの地図表示ライブラリ。どんなものかは「MapLibreとは」のようなキーワードでWeb検索してみると分かる。
+
+本記事では、MapLibre GL JS と Svelte を使って、単純に地図を表示する方法を記す。
+
+<Message level="0">
+ついでに「ベクトルタイル ラスタタイル」でも検索して、それぞれどんなものかも把握しておけば話がスムーズ。
+</Message>
+
+# プロジェクト作成と初期化
+
+<a href="https://tris5572.github.io/blog/posts/2023/2023-03-vite-svelte-init/" target="_blank">以前の記事の手順</a>に従い、Vite を使って `npm init vite` により Svelte + TypeScript のプロジェクトを作成する。
+
+MapLibre の使い方は、<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">公式ドキュメントのクイックスタート</a>内の Module bundler のやり方をベースにする。
+
+<Message level="1">
+とは言え、Svelteだと全然違う書き方になるので参考程度にしかならない。
+</Message>
+
+プロジェクトに MapLibre を追加するために `npm i maplibre-gl` を実行する。MapLibre GL JS 自体が TypeScript で書かれていることもあり、型の追加を行わずとも型が使えるので便利。
+
+あとは後述するようなコードを書けば `npm run dev` により開発サーバで実行できる。
+
+# 基本的なベクトルタイルの地図表示
+
+MapLibre はベクトルタイルの表示が得意。これはラスタタイルの表示が基本の Leaflet とは根本的に異なるところ。ということでまずは基本となるベクトルタイルの地図を表示する。
+
+作成したプロジェクトで `src/App.svelte` を以下のように書き換える。保存して `npm run dev` で実行してページをWebブラウザで開くと、画面いっぱいに地図が表示されるはず。
+
+```svelte
+<script lang="ts">
+  import maplibregl, { Map } from "maplibre-gl";
+  import { onMount } from "svelte";
+
+  let map: Map;
+
+  onMount(() => {
+    map = new maplibregl.Map({
+      container: "map",
+      style: "https://tile2.openstreetmap.jp/styles/osm-bright-ja/style.json", // スタイル指定
+      center: [139.75, 35.685], // 初期表示位置。 [lng, lat] で経度・緯度の順なので注意
+      zoom: 8, // 初期表示拡大率
+    });
+
+    // 拡大縮小コントロールを表示する。
+    map.addControl(new maplibregl.NavigationControl({}));
+  });
+</script>
+
+<svelte:head>
+  <link
+    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+</svelte:head>
+<main>
+  <div id="map" />
+</main>
+
+<style>
+  /* ページの余白を削除する */
+  :global(#app) {
+    margin: 0;
+    padding: 0;
+  }
+  /* 画面いっぱいに地図を表示する */
+  #map {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+  }
+</style>
+```
+
+<Image src="/images/2023/2023-03-17-1.jpg" alt="MapLibre GL JSでのベクトルタイル表示" caption="このような地図が表示される" />
+
+## 地図の初期化
+
+Svelte では、地図の初期化を `onMount()` に渡す関数内で実施するのが重要。こうしないと、地図にするHTML要素がなくてエラーとなる。
+
+なお、座標の指定が、Leaflet のような「緯度・経度」の順ではなく**経度・緯度の順**であることに要注意。
+
+## スタイル
+
+MapLibre は、`Map` のオプションの `style` で指定した内容に基づいて地図を表示する。上記コードではスタイルを指定するJSONファイルのURLを指定している。
+
+このJSONの中身を見ると、ベクトルタイルのデータ元のURLと、**地図に表示する諸々の要素のスタイル**が書かれている。このスタイルは、例えば先の太さや塗りの色や重なりの順序などであり、これに基づいて画面が描画される。したがって**地図の見た目を自由自在に変更できる**ということで、これがベクトルタイルのとても大きなメリット。
+
+例えば<a href="https://tile.openstreetmap.jp/" target="_blank">OpenStreetMapで公開されているスタイル</a>がいくつかある。このページ内の「GL Style」と書かれている部分のリンクを上記コードの `style` に設定してみると、色々と試せる。（ちなみに上記コード内で指定しているスタイルも、このページ内の1つ）
+
+別の色使いや英語にしたり、ガラッと変えて白黒にしたりできる。地図の元データは同じなのに、ここまで変えられる。
+
+<Image src="/images/2023/2023-03-17-2.jpg" alt="MapLibre GL JSでのベクトルタイル表示" caption="別の色使い" />
+
+&nbsp;
+
+<Image src="/images/2023/2023-03-17-3.jpg" alt="MapLibre GL JSでのベクトルタイル表示" caption="白黒" />
+
+ちなみにこのスタイルは単なるJSONで書かれているだけなので、自分でも作れる。ただ<a href="https://maplibre.org/maplibre-gl-js-docs/style-spec/" target="_blank">公開されている仕様</a>や、上記のスタイルファイルの中を見ると分かる通り、大量の指定を行う必要があり、自分で作るのは躊躇する。
+
+一応、これをGUIで表示を確認しながら編集できる <a href="https://maputnik.github.io/" target="_blank">Maputnik</a> というオンラインで使えるエディタがある。ただ使い勝手が独特だったり、中身の仕様を知らないと編集しにくかったりするので、それでもハードルは高い。でも好きなスタイルを使えるので、苦労するだけの価値はある、かも。
+
+
+# 地理院タイル（ラスタ）の表示
+
+MapLibre では上記の通りベクトルタイルが使いやすいけど、ラスタタイルも表示できる。
+
+`onMount()` の中の地図の初期化部分を、以下のように書き換えればよい。これで国土地理院の淡色タイルが表示される。
+
+```ts
+  map = new maplibregl.Map({
+    container: "map",
+    style: {
+      version: 8,
+      sources: {
+        pale: {
+          type: "raster",
+          tiles: [
+            "https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png",
+          ],
+          tileSize: 256,
+          attribution:
+            '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>',
+        },
+      },
+      layers: [
+        {
+          id: "pale-tile",
+          type: "raster",
+          source: "pale",
+        },
+      ],
+      center: [138.5, 36.2],
+      zoom: 8,
+    },
+  });
+```
+
+ベクトルタイルのコードと見比べると、ラスタタイルを表示するときは表面的なコードがちょっと多くなっている。
+
+というのも、ベクトルタイルの場合は地図タイルのURLやレイヤーの表示方法等の情報がJSONファイルの中に書かれているが、ラスタタイルでは自分でそれを記述する必要があるため。よく読むと、`style`にJSONファイル相当の情報を渡していることが分かる。パッと見で意味がわからない `version: 8` の指定とか、その最たるもの。
+
+ただ中身も含めて考えると、ラスタタイルでは表示スタイルの指定が不要なため、実質的な情報量としてはかなり少ないことになる。
+
+# 地図をクリックしたところにマーカーを追加する
+
+インタラクティブな地図操作の第一歩として、クリックした座標にマーカーを追加する動作を追加してみる。
+
+これは簡単で、上記コード（ベクトルタイルとラスタタイルのどちらでも良い）の `onMount()` に渡している関数の最後に、以下のコードを追加する。
+
+```ts
+  onMount(() => {
+    ...(略)...
+    // ここから -----------------------------------
+    map.on("click", (e) => {
+      const marker = new maplibregl.Marker({})
+        .setLngLat(e.lngLat)
+        .addTo(map);
+    });
+    // ここまで -----------------------------------
+  });
+</script>
+```
+
+<Image src="/images/2023/2023-03-17-4.jpg" alt="MapLibre GL JSのマーカー" caption="クリックした場所にマーカーが追加される" />
+
+地図`map`に対して、クリック時(`click`)のイベントリスナーを登録している。これで地図をクリックすると、ここで渡した関数が実行される。
+
+クリック時に渡される `e` の型は `MapMouseEvent` で、`lngLat` を読めばクリックした座標を取得できる。
+
+マーカーの作成時に何もオプションを渡していないので、デフォルト形状のマーカーが表示される。
+
+なお変数`marker`に、生成したマーカーを入れている。これはこのコードでは特に必要ないが、後でマーカーを削除するときなんかに使える。
+
+---
+
+ということで MapLibre GL JS と Svelte を使って地図を表示する方法を紹介した。
+
+これまで自分はずっと Leaflet を使っていたものの、いくつか気になるところがあったので、 MapLibre に手を出して、色々と触ってみている。ベクトルタイルの利用とか良い感じ。ただ独特の癖があったりして使うには様々なノウハウが必要なので、備忘がてら今後も記事にしていく予定。
+
