@@ -19,9 +19,9 @@ MapLibre はオープンソースの地図表示ライブラリ。どんなも�
 
 # プロジェクト作成と初期化
 
-<a href="https://tris5572.github.io/blog/posts/2023/2023-03-vite-svelte-init/" target="_blank">以前の記事の手順</a>に従い、Vite を使って `npm init vite` により Svelte + TypeScript のプロジェクトを作成する。
+まずは[以前の記事の手順](https://tris5572.github.io/blog/posts/2023/2023-03-vite-svelte-init/)に従い、Vite を使って `npm init vite` により Svelte + TypeScript のプロジェクトを作成する。
 
-MapLibre の使い方は、<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">公式ドキュメントのクイックスタート</a>内の Module bundler のやり方をベースにする。
+MapLibre の使い方は、[公式ドキュメントのクイックスタート内](https://maplibre.org/maplibre-gl-js-docs/api/)の Module bundler のやり方をベースにする。
 
 <Message level="1">
 とは言え、Svelteだと全然違う書き方になるので参考程度にしかならない。
@@ -98,7 +98,7 @@ MapLibre は、`Map` のオプションの `style` で指定した内容に基�
 
 このJSONの中身を見ると、ベクトルタイルのデータ元のURLと、**地図に表示する諸々の要素のスタイル**が書かれている。このスタイルは、例えば先の太さや塗りの色や重なりの順序などであり、これに基づいて画面が描画される。したがって**地図の見た目を自由自在に変更できる**ということで、これがベクトルタイルのとても大きなメリット。
 
-例えば<a href="https://tile.openstreetmap.jp/" target="_blank">OpenStreetMapで公開されているスタイル</a>がいくつかある。このページ内の「GL Style」と書かれている部分のリンクを上記コードの `style` に設定してみると、色々と試せる。（ちなみに上記コード内で指定しているスタイルも、このページ内の1つ）
+例えば[OpenStreetMapで公開されているスタイル](https://tile.openstreetmap.jp/)がいくつかある。このページ内の「GL Style」と書かれている部分のリンクを上記コードの `style` に設定してみると、色々と試せる。ちなみに上記コード内で指定しているスタイルも、このページ内の1つ。
 
 別の色使いや英語にしたり、ガラッと変えて白黒にしたりできる。地図の元データは同じなのに、ここまで変えられる。
 
@@ -108,9 +108,9 @@ MapLibre は、`Map` のオプションの `style` で指定した内容に基�
 
 <Image src="/images/2023/2023-03-17-3.jpg" alt="MapLibre GL JSでのベクトルタイル表示" caption="白黒" />
 
-ちなみにこのスタイルは単なるJSONで書かれているだけなので、自分でも作れる。ただ<a href="https://maplibre.org/maplibre-gl-js-docs/style-spec/" target="_blank">公開されている仕様</a>や、上記のスタイルファイルの中を見ると分かる通り、大量の指定を行う必要があり、自分で作るのは躊躇する。
+ちなみにこのスタイルは単なるJSONで書かれているだけなので、自分でも作れる。ただ[ファイルの仕様](https://maplibre.org/maplibre-gl-js-docs/style-spec/)や、上記のスタイルファイルの中を見ると分かる通り、大量の指定を行う必要があり、自分で作るのは躊躇する。
 
-一応、これをGUIで表示を確認しながら編集できる <a href="https://maputnik.github.io/" target="_blank">Maputnik</a> というオンラインで使えるエディタがある。ただ使い勝手が独特だったり、中身の仕様を知らないと編集しにくかったりするので、それでもハードルは高い。でも好きなスタイルを使えるので、苦労するだけの価値はある、かも。
+一応、これをGUIで表示を確認しながら編集できる [Maputnik](https://maputnik.github.io/) というオンラインで使えるエディタがある。ただ使い勝手が独特だったり、中身の仕様を知らないと編集しにくかったりするので、それでもハードルは高い。でも好きなスタイルを使えるので、苦労するだけの価値はある、かも。
 
 
 # 地理院タイル（ラスタ）の表示
