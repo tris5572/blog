@@ -53,13 +53,9 @@ SvelteKitではなく、Svelte単体でアプリを作る。[Svelteの公式ド�
 
 # VSCodeでエラーが表示されたときの対応（1度だけ）
 
-もしも、プロジェクト内の `.svelte` ファイルをVSCodeで開いたときに謎のエラーが表示されたときの対処法。
+もしも、プロジェクト内の `.svelte` ファイルをVSCodeで開いたときに、こんなエラーが表示されたときの対処法。
 
-`Error in svelte.config.js SyntaxError: Cannot use import statement outside a module` と書かれているかも。
-
-<Message level="0">
-手元で再現しなくなったけど、多分こんなメッセージのはず……。
-</Message>
+> `Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@sveltejs/vite-plugin-svelte' imported from <プロジェクトのディレクトリ>\svelte.config.js`
 
 これは以下の設定を行えば解消できる。
 
