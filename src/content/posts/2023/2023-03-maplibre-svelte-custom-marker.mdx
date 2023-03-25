@@ -1,0 +1,266 @@
+---
+title: "MapLibre GL JS + Svelte でカスタムマーカーを表示する"
+description: ""
+pubDate: "2023-03-26"
+heroImage: "/images/2023/2023-03-26-0.jpg"
+tags: ["プログラム", "MapLibre", "Svelte"]
+draft: false
+---
+import Image from '@components/Image.astro';
+import Message from '@components/Message.astro';
+
+MapLibre GL JS + Svelte を使って、カスタムマーカーを表示する。カスタムマーカーと言いつつ、HTML要素を表示できるので、活用の幅は広い。
+
+# プロジェクト作成
+
+説明用のプロジェクトを作成する。[以前の記事の手順](https://tris5572.github.io/blog/posts/2023/2023-03-maplibre-svelte-basic/)通りにプロジェクトを作成し、 `src/App.svelte` を以下のように書き換える。
+
+```svelte
+<script lang="ts">
+  import maplibregl, { Map } from "maplibre-gl";
+  import { onMount } from "svelte";
+
+  let map: Map;
+
+  // マウント後に地図を初期化する。
+  onMount(() => {
+    map = new maplibregl.Map({
+      container: "map",
+      style:
+        "https://tile.openstreetmap.jp/styles/maptiler-basic-ja/style.json", // スタイル指定
+      center: [139.766, 35.682], // 初期表示位置。 [lng, lat] で経度・緯度の順なので注意
+      zoom: 16, // 初期表示拡大率
+      dragRotate: false,
+    });
+
+    // 拡大縮小コントロールを表示する。
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+
+    const marker = new maplibregl.Marker({})
+      .setLngLat([139.7659, 35.6814])
+      .addTo(map);
+  });
+</script>
+
+<svelte:head>
+  <link
+    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+</svelte:head>
+<main>
+  <div id="map" />
+</main>
+
+<style>
+  /* ページの余白を削除する */
+  :global(#app) {
+    margin: 0;
+    padding: 0;
+  }
+  /* 画面いっぱいに地図を表示する */
+  #map {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+  }
+</style>
+```
+<Image src="/images/2023/2023-03-26-1.jpg" alt="" caption="デフォルトのマーカーが表示される" />
+
+
+## デフォルトマーカーの表示
+
+上記コードではマーカーを地図に追加している。詳細な位置が分かりやすいように、東京駅の丸の内側の中央の位置に置いている。
+
+マーカーの生成時 `new maplibregl.Marker({})` に、何もオプションを指定していない。このようにカスタムマーカーとしてのHTML要素を指定していない場合は、デフォルト形状のマーカーが表示されるようになっている。
+
+ただこのマーカー、クリックされたときの動作を仕込めない。[ドキュメント](https://maplibre.org/maplibre-gl-js-docs/api/markers/#marker-events)を見ると分かる通り、ドラッグ操作に対するイベントしか対応していない。これを解決するためにはカスタムマーカーを使用することになる。
+
+<Message level="1">
+どうも MapLibre の設計方針として、ライブラリがカバーする範囲を最小化しているような雰囲気がある。
+
+クリック時のイベントなんかは用意にユーザ側で処理可能なのでそっちにお任せして、座標がインタラクティブに絡んでくるドラッグ操作のようなものだけ仕方なくライブラリ側で扱っているような感じ。
+
+実は、少しハックすればデフォルトマーカーにもクリックイベントを仕込めるけど、あまりやる意味がないし真っ当な方法ではなくて微妙。
+</Message>
+
+## マーカーへのポップアップの追加
+
+今回の記事の本題とはズレるものの、もしデフォルトマーカーに対して追加情報を表示したい場合、ポップアップが使える。クリックすると追加情報がポンと表示されるあれ。
+
+コードとしては、マーカーを追加する部分を、以下のように書けば良い。
+
+```ts
+    const popup = new maplibregl.Popup().setHTML(
+      "<h2>東京駅 丸の内口</h2>東京駅の皇居側<br />広場がある"
+    );
+    const marker = new maplibregl.Marker({})
+      .setLngLat([139.7659, 35.6814])
+      .setPopup(popup) // 追加。マーカーにポップアップを設定する。
+      .addTo(map);
+```
+
+マーカーをクリックすると、設定したHTML要素の中身を持つポップアップが表示される。
+
+<Image src="/images/2023/2023-03-26-2.jpg" alt="" caption="ポップアップ表示" />
+
+# カスタムマーカー
+
+カスタムマーカーを使えば、見た目を自由に設定できる。というか、**マーカーとしてHTML要素を設定できる**ので、画像だけではなく文字列を表示したり、イベント処理を組み込んだり、みたいなことが可能。
+
+やり方は簡単で、マーカー生成時のオプションで `element` に対して `HTMLElement` を渡せば良い。
+
+## カスタムマーカーの追加方法
+
+実際に上記のコードに対して、カスタムマーカーを表示してみる。
+
+主な変更点は以下の2箇所。
+
+### マーカーとなる要素の生成と追加
+
+まずはマーカーとなるHTML要素 `el`（型は `HTMLDivElement`）を生成し、クラスや中身を指定している。
+
+そしてマーカー生成時に、オプションの `element` へ `el` を渡している。
+
+```ts
+    // マーカーとして使用するHTML要素を生成する。
+    const el = document.createElement("div");
+    el.className = "custom-marker";
+    el.innerHTML = "<h2>東京駅 丸の内口</h2>東京駅の皇居側<br />広場がある";
+
+    // マーカー作成時に、オプションとしてHTML要素を指定する。
+    const marker = new maplibregl.Marker({ element: el })
+      .setLngLat([139.7659, 35.6814])
+      .addTo(map);
+```
+
+### CSSの設定
+
+そして `<style>` の中に以下の記述を追加する。
+
+```css
+  :global(.custom-marker) {
+    background: hsla(200, 50%, 50%, 0.5);
+    padding: 0 1em;
+    cursor: pointer;
+  }
+```
+
+マーカーとなるHTML要素を `custom-marker` クラスとしたので、これに対するスタイルを書く。スタイルの中身としては、背景色と余白、それとマウスカーソルを合わせたときの形状を設定している。
+
+ここでのポイントが、 `:global()` にスタイルを指定していること。Svelte のスタイルはそのコンポーネントにのみ適用されるため、子要素になるマーカーには適用されない。したがって `:global()` を使ってコンポーネント外にも適用されるようにしている。
+
+これで実行すると、以下のようにカスタムマーカーが表示される。単なる四角いエリアであり、マーカーとしての見た目をしていないけど。
+
+<Image src="/images/2023/2023-03-26-3.jpg" alt="" caption="カスタムマーカー（という名の四角）" />
+
+
+## マーカーをクリックしたときのイベント設定
+
+このようにカスタムマーカーを指定すれば、デフォルトマーカーではできなかった、マーカーがクリックされたときのイベントに対応可能。
+
+マーカーとして指定したHTML要素に対してクリック時のイベントを設定すればよいというわけで、以下のように `el` に対してのイベントリスナを設定する。これでマーカーとなっている要素をクリックしたとき、ブラウザの開発者ツールのコンソールに文字列が表示される。
+
+```ts
+    el.addEventListener("click", () => {
+      console.log("マーカーがクリックされました");
+    });
+```
+
+これを使えば色々できるので、例えばクリックされたマーカーを消したりできる。マーカーの生成後、以下のようにイベントリスナを設定すれば良い。
+
+```ts
+    el.addEventListener("click", () => {
+      marker.remove();
+    });
+```
+
+
+## マーカーの表示位置の調整
+
+現状では、マーカーとして指定した座標に、カスタムマーカーのHTML要素の中心が位置していることが分かる。これがデフォルトの動作。でも自作マーカーでは位置をずらしたいことはよくあるということで、オプションを渡すことで調整可能。
+
+まずは `anchor` があり、これはHTNL要素のどの位置が指定した座標に来るかを設定できる。文字列での指定となり、`'center' , 'top' , 'bottom' , 'left' , 'right' , 'top-left' , 'top-right' , 'bottom-left' , 'bottom-right'` のいずれかとなり、デフォルト（無指定）では`'center'`になっている。
+
+さらにそこからずらしたいときは `offset` を使える。これは何ピクセルずらすかを指定できる。
+
+具体的な例として、マーカー要素の中に、位置をピンポイントで示すピンを表示するとする。マーカーのHTML要素の子要素として、絶対座標のピンとして角丸を追加する。ピンの位置は左右中央で、上から4ピクセルの位置に上端が来るような設定としている。
+
+<Message level="0">
+ついでに、表示が分かりやすいよう、マーカーの背景色の不透明度を `0.2` に下げている。
+</Message>
+
+```ts
+    // マーカー要素内のピン。
+    const pin = document.createElement("div");
+    pin.style.cssText =
+      "width: 12px; height: 12px;" +
+      "border: 2px solid hsl(160, 50%, 50%); border-radius: 6px;" +
+      "position: absolute; top: 4px; left: 50%;" +
+      "transform: translateX(-50%);";
+
+    const el = document.createElement("div");
+    el.className = "custom-marker";
+    el.innerHTML =
+      "<br /><b>東京駅 丸の内口</b>東京駅の皇居側<br />広場がある<br /><br /><br /><br />";
+    el.appendChild(pin); // 子要素として追加
+
+    const marker = new maplibregl.Marker({ element: el })
+      .setLngLat([139.7659, 35.6814])
+      .addTo(map);
+```
+
+<Image src="/images/2023/2023-03-26-4.jpg" alt="ずれたマーカー" caption="" />
+
+ピンの角丸が表示されているものの、ピンで示したい位置からずれている。これは前述の通り、**HTML要素の中央が指定した座標に来ている**ため。これを上手いことずらして、ピンの位置を合わせるようにする。
+
+今回はピンが左右中央で上部から一定のピクセルに来るということで、まずは `anchor` として `top` を指定する。これでHTML要素の上部・左右中央が座標の位置になる。
+
+これからさらにマーカー全体を少し上にずらす。HTML要素内の上部から見たピンの中心位置は、余白4px + 線幅2px + 大きさの半分6px の合計12ピクセルなので、12ピクセル上にずらせば良い。したがって `offset: [0, -12]` を指定する。
+
+それを反映したのが以下のコード。これで意図した位置にマーカーが表示される。
+
+```ts
+    const marker = new maplibregl.Marker({
+      element: el,
+      anchor: "top",
+      offset: [0, -12],
+    })
+      .setLngLat([139.7659, 35.6814])
+      .addTo(map);
+```
+
+<Image src="/images/2023/2023-03-26-5.jpg" alt="意図された位置に表示されたマーカー" caption="" />
+
+&nbsp;
+
+<Message level="1">
+備忘： マーカーのオプションの `anchor` は `center` のような文字列で指定できるが、実際の表示時にはCSSの `transform` プロパティで `translate()` を指定してマーカーの要素を移動させている。HTML要素は左上が起点になるので、`top-left` ならば移動させず、 `center` ならば中心となるように幅と高さの半分ずつだけ左上にずらすという理屈。
+
+https://github.com/maplibre/maplibre-gl-js/blob/main/src/ui/anchor.ts
+
+```ts
+export const anchorTranslate: {
+    [_ in PositionAnchor]: string;
+} = {
+    'center': 'translate(-50%,-50%)',
+    'top': 'translate(-50%,0)',
+    'top-left': 'translate(0,0)',
+    'top-right': 'translate(-100%,0)',
+    'bottom': 'translate(-50%,-100%)',
+    'bottom-left': 'translate(0,-100%)',
+    'bottom-right': 'translate(-100%,-100%)',
+    'left': 'translate(0,-50%)',
+    'right': 'translate(-100%,-50%)'
+};
+```
+</Message>
+
+---
+
+MapLibre ではこのようにしてカスタムマーカーを利用できる。
+
+マーカーとしてHTML要素を表示できるので、文字や画像をそのまま表示できる。つまりマーカーピンの見た目を変えられるだけではなく、追加の情報を表示したり、使い道の幅は広い。
