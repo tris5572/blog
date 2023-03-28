@@ -1,6 +1,6 @@
 ---
 title: "Viteを使ったSvelteのプロジェクト生成時のメモ"
-description: "Viteを使ってSvelteでシンプルなアプリを作ってGitHub Pagesへデプロイしようとしたらちょっと引っかかったので、対応を書き残しておく。"
+description: "Viteを使ってSvelteでシンプルなアプリを作ってGitHub Pagesへデプロイするときはいくつかの手順が必要。"
 pubDate: "2023-03-05"
 heroImage: "/images/2023/2023-03-05.jpg"
 tags: ["プログラム", "Svelte"]
@@ -8,7 +8,7 @@ tags: ["プログラム", "Svelte"]
 import Image from '@components/Image.astro';
 import Message from '@components/Message.astro';
 
-Viteを使ってSvelteでシンプルなアプリを作ってGitHub Pagesへデプロイしようとしたらちょっと引っかかったので、対応を書き残しておく。
+Viteを使ってSvelteでシンプルなアプリを作ってGitHub Pagesへデプロイする際、いくつかの手順が必要になるので、書き残しておく。
 
 # 環境
 
@@ -106,6 +106,8 @@ test("One plus Two", () => {
 
 リポジトリへプッシュしたときに、GitHub Actionsで自動ビルドされて`gh-pages`ブランチがGitHub Pagesとして公開されるよう設定する。
 
+## ファイルの作成・編集
+
 `.github/workflows/deploy.yaml` として、以下のファイルを作成する。
 
 ```yaml
@@ -156,6 +158,12 @@ export default defineConfig({
 <script type="module" src="./src/main.ts"></script>
 ```
 
+## GitHub側の設定
+
+リポジトリをWebブラウザで開き、`Settings > Actions > General` 内の `Workflow permissions` で `Read and write permissions` を選択する。
+
+## プッシュ
+
 GitHubにリポジトリを作ってプッシュする。
 
 1. ローカルで`git init`
@@ -163,7 +171,7 @@ GitHubにリポジトリを作ってプッシュする。
 3. ローカルでリモートとしてリポジトリを追加
 4. プッシュ
 
-## GitHub側のプロジェクト設定
+## GitHub Pagesの公開設定
 
 `Settings > Pages > Branch` で `gh-pages` と `/(root)` を選択して Save する。
 
@@ -171,11 +179,13 @@ GitHubにリポジトリを作ってプッシュする。
 `gh-pages`は、ビルドとデプロイのActionsが成功して`gh-pages`ブランチができた後にしか選択できない。
 </Message>
 
+## 公開の確認
+
 これでGitHub Pagesに公開されているはず。URLはリポジトリの Actions タブの実行結果を見れば分かる。
 
 <Message level="2">
-プッシュ後にデプロイが失敗し、リポジトリの Actions タブの当該デプロイに `Action failed with "The process '/usr/bin/git' failed with exit code 128"` というエラーが表示されていた場合は対応が必要。
+もしプッシュ後にデプロイが失敗し、リポジトリの Actions タブの当該デプロイに `Action failed with "The process '/usr/bin/git' failed with exit code 128"` というエラーが表示されていた場合は、上記のワークフローのパーミッションを設定する必要がある。
 
-リポジトリの設定変更として、`Settings > Actions > General` 内の `Workflow permissions` で `Read and write permissions` を選択する。
+リポジトリで、`Settings > Actions > General` 内の `Workflow permissions` で `Read and write permissions` を選択する。
 </Message>
 
